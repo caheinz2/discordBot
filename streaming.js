@@ -62,21 +62,22 @@ async function play(message) {
             collector.stop();
             play(queue.songs.shift());
         });
-        message.guild.voiceConnection.on('disconnect', () => {
-            queue.songs = [];
-            playing = false;
-            dispatcher.end();
-            //Leaves channel already on disconnect.
-            return;
-        });
-        message.guild.voiceConnection.on('error', () => {
-            queue.songs = [];
-            playing = false;
-            dispatcher.end();
-            message.member.voiceChannel.leave();
-            return;
-        });
     })(queue.songs.shift());
+
+    message.guild.voiceConnection.on('disconnect', () => {
+        queue.songs = [];
+        playing = false;
+        dispatcher.end();
+        //Leaves channel already on disconnect.
+        return;
+    });
+    message.guild.voiceConnection.on('error', () => {
+        queue.songs = [];
+        playing = false;
+        dispatcher.end();
+        message.member.voiceChannel.leave();
+        return;
+    });
 
 }
 
