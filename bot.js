@@ -10,6 +10,7 @@ var spotify = require('./spotify.js');
 var bot;
 
 function initiateBot() {
+    console.log('Initializing Bot');
     bot = new Discord.Client();
     bot.login(auth.token);
 }
@@ -21,12 +22,14 @@ bot.on('ready', function (evt) {
 });
 
 bot.on('error', err => {
-    console.log(err);
+    console.log('Bot encountered an error');
+    console.error(err);
+    bot.destroy();
     initiateBot();
 });
 
-bot.on('disconnect', () => {
-    initiateBot();
+bot.on('warn', err => {
+    console.warn(err);
 });
 
 bot.on('message', message => {
@@ -152,7 +155,9 @@ bot.on('message', message => {
                         queueString = '';
                     }
                 });
-                message.channel.send(queueString);
+                if(queueString != '') {
+                    message.channel.send(queueString);
+                }
                 break;
 
             case 'clear':
