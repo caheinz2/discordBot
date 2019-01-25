@@ -6,6 +6,16 @@ var youtube = require('./youtube.js');
 const yt = require('ytdl-core');
 var spotify = require('./spotify.js');
 
+//Things aren't super stable rn so it's gonna restart every morning
+var now = new Date();
+var millisTill5 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 0, 0, 0) - now; //11 System time is 5 central time
+if (millisTill5 < 0) {
+     millisTill5 += 86400000; // it's after 10am, try 10am tomorrow.
+}
+
+console.log(new Date());
+setTimeout(function(){process.exit(0)}, millisTill5);
+
 // Initialize Discord Bot
 var bot;
 
