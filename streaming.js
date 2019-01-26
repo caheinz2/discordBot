@@ -4,6 +4,8 @@ const async = require('async');
 var playing;
 var queue = {songs: [] };
 
+let pausedInactivity = false;
+
 async function join(message) {
     if(!message.guild) {
         message.channel.send('This command only works in guilds');
@@ -21,7 +23,6 @@ async function join(message) {
 async function play(message) {
 
     if(playing) {
-        message.channel.send('Bot already playing music');
         return;
     }
     if(queue === undefined) {
@@ -38,18 +39,27 @@ async function play(message) {
             message.member.voiceChannel.leave();
             playing = false;
         });
-        //message.channel.send(`Playing: **${song.title}** as requested by: **${song.requester}**`);
+        message.channel.send(`Playing: **${song.title}** as requested by: **${song.requestedBy}**`);
         if(message.guild.voiceConnection == null) {
             return;
         }
-        dispatcher = message.guild.voiceConnection.playStream(yt(song.url, { filter: 'audioonly', quality: 'highestaudio'}), {bitrate: '64000', volume: '.5', passes: '2'});
+        dispatcher = message.guild.voiceConnection.playStream(yt(song.url, { filter: 'audioonly', quality: 'highestaudio'}), {bitrate: '64000', volume: '.15', passes: '2'});
         let collector = message.channel.createCollector(m => m);
         collector.on('collect', m => {
             if (m.content.startsWith('!kb pause')) {
                 dispatcher.pause();
-            } else if (m.content.startsWith('!kb unpause')){
+                pausedInactivity = true;
+                setTimeout(() => {
+                    if(pausedInactivity) {
+                        //If it's been idle for 10 minutes, just leave chat
+                        message.channel.send('Bot was paused for too long and left the voice channel');
+                        message.guild.voiceConnection.disconnect();
+                    }
+                }, 600000);
+            } else if (m.content.startsWith('!kb unpause') || m.content.startsWith('!kb resume') || m.content.startsWith('!kb play')){
                 dispatcher.resume();
-            } else if (m.content.startsWith('!kb skip')){
+                pausedInactivity = false;
+            } else if (m.content.startsWith('!kb skip') || m.content.startsWith('!kb next')){
                 dispatcher.end();
             }
         });
@@ -67,20 +77,23 @@ async function play(message) {
     message.guild.voiceConnection.on('disconnect', () => {
         queue.songs = [];
         playing = false;
-        dispatcher.end();
         //Leaves channel already on disconnect.
         return;
     });
     message.guild.voiceConnection.on('error', () => {
         queue.songs = [];
         playing = false;
-        dispatcher.end();
         message.member.voiceChannel.leave();
         return;
     });
 
 }
 
+function exitGracefully(message) {
+    if(message != null) {
+        message.guild.voiceConnection.disconnect;
+    }
+}
 
 
 module.exports = {join, queue, play};

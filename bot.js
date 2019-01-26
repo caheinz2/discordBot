@@ -6,7 +6,7 @@ var youtube = require('./youtube.js');
 const yt = require('ytdl-core');
 var spotify = require('./spotify.js');
 
-//Things aren't super stable rn so it's gonna restart every morning
+//Things aren't super stable rn so it's gonna restart every morning so pm2 can reset it
 var now = new Date();
 var millisTill5 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 0, 0, 0) - now; //11 System time is 5 central time
 if (millisTill5 < 0) {
@@ -15,6 +15,15 @@ if (millisTill5 < 0) {
 
 console.log(new Date());
 setTimeout(function(){process.exit(0)}, millisTill5);
+
+//Maybe this works lol...I need to figure out what exactly this catches
+//The goal is that if the bot crashes, pm2 can restart it whereas currently
+//There is one specific error I get every few days that doesn't cause the process
+//to exit but does cause it to stop being responsive.
+process.on('uncaughtException', (err) => {
+    console.log('Uncaught Exception!' + err);
+    process.exit(0);
+});
 
 // Initialize Discord Bot
 var bot;
@@ -128,6 +137,7 @@ bot.on('message', message => {
                     break;
                 }
                 shuffle(streaming.queue.songs);
+                message.channel.send("Queue has been shuffled");
                 break;
 
             case 'add':
@@ -148,7 +158,7 @@ bot.on('message', message => {
                 }
 
                 var queryString = message.content.substring(8);
-                youtube.add(queryString, streaming.queue, message.author.username)
+                youtube.add(queryString, streaming.queue, message)
                 break;
 
             case 'queue':
@@ -159,7 +169,7 @@ bot.on('message', message => {
                 message.channel.send('Music queue is: ')
                 var queueString = '';
                 streaming.queue.songs.forEach(song => {
-                    queueString += 'Song: ' + song.title + ', Requested by: ' + song.requestedBy + '\n';
+                    queueString += `Song: **${song.title}** as requested by: **${song.requestedBy}** \n`
                     if(queueString.length > 1800) {
                         message.channel.send(queueString);
                         queueString = '';
@@ -176,6 +186,7 @@ bot.on('message', message => {
                     break;
                 }
                 streaming.queue.songs = [];
+                message.channel.send("Queue has been cleared");
                 break;
 
             case 'kick':

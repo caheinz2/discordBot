@@ -43,7 +43,7 @@ async function getSpotifyPlaylist(playlistID, queue, message) {
             body = JSON.parse(body);
             body.tracks.items.forEach(index => {
                 var searchString = index.track.name + ' ' + index.track.artists[0].name;
-                youtube.add(searchString, queue, message.author.username);
+                youtube.add(searchString, queue, message);
             });
         })
     });
