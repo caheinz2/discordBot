@@ -6,14 +6,6 @@ var youtube = require('./youtube.js');
 const yt = require('ytdl-core');
 var spotify = require('./spotify.js');
 
-//Maybe this works lol...I need to figure out what exactly this catches
-//The goal is that if the bot crashes, pm2 can restart it whereas currently
-//There is one specific error I get every few days that doesn't cause the process
-//to exit but does cause it to stop being responsive.
-process.on('uncaughtException', (err) => {
-    console.log('Uncaught Exception!' + err);
-    process.exit(0);
-});
 
 // Initialize Discord Bot
 var bot;
