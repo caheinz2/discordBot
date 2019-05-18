@@ -43,7 +43,7 @@ async function play(message) {
         if(message.guild.voiceConnection == null) {
             return;
         }
-        dispatcher = message.guild.voiceConnection.playStream(yt(song.url, { filter: 'audioonly', quality: 'highestaudio'}), {bitrate: '64000', volume: '.15', passes: '2'});
+        dispatcher = message.guild.voiceConnection.playStream(yt(song.url, { filter: 'audioonly', quality: 'highestaudio'}), {bitrate: '64000', volume: '.15', passes: '4'});
         let collector = message.channel.createCollector(m => m);
         collector.on('collect', m => {
             if (m.content.startsWith('!kb pause')) {

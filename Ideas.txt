@@ -1,0 +1,5 @@
+To Do:
+
+-Command to clear chat from itself (or another user) in a channel (or all channels)
+-Filter messages to the correct channel
+-Queue back
