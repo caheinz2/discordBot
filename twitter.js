@@ -1,5 +1,5 @@
 const Twitter = require('twitter');
-const creds = require('./twitterCreds.json');
+const creds = require('./secrets/twitterCreds.json');
 const async = require('async');
 
 
@@ -49,7 +49,7 @@ async function main() {
     let randUser = randomInt(0, 3);
     let tweet;
     let randTweetNum = randomInt(0, 601);
-    let users = ['thehobbitfreak', 'Battlesperger', 'tnari5'];
+    let users = ['thehobbitfreak', 't4k4b', 'tnari5'];
 
     tweet = await getTweetNumbered(client, randTweetNum, users[randUser]);
     return 'https://twitter.com/' + users[randUser] + '/status/' + tweet.id_str;

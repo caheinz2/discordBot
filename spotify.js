@@ -1,5 +1,5 @@
 const async = require('async');
-const creds = require('./spotifyCreds.json');
+const creds = require('./secrets/spotifyCreds.json');
 const request = require('request');
 var youtube = require('./youtube.js');
 

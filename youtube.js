@@ -1,5 +1,5 @@
 const async = require('async');
-const creds = require('./youtubeCreds.json');
+const creds = require('./secrets/youtubeCreds.json');
 const YouTube = require('simple-youtube-api');
 
 const youtube = new YouTube(creds.DataApiAuthKey);
