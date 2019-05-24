@@ -124,7 +124,7 @@ async function respondToInput(command_input_array, message) {
 
             //get a random tweet from the bois
             try {
-                let tweet_url = await tweets.main();
+                let tweet_url = await tweets.getRandomTweetFromMember();
                 console.log(tweet_url);
                 return tweet_url;
             }
@@ -160,13 +160,13 @@ async function respondToInput(command_input_array, message) {
 
             //Add spotify playlist by id
             if(command_input_array[1] == 'playlist') {
-                spotify.getSpotifyPlaylist(args[2], streaming.queue, message);
+                spotify.getSpotifyPlaylist(command_input_array[2], streaming.queue, message);
                 return;
             }
 
             //Add song from youtube by searching input string
             else {
-                var query_string = message.content.substring(8);
+                var query_string = message.content.substring(8); //this is the inputted command with '!kb add ' stripped
                 youtube.add(query_string, streaming.queue, message)
                 return;
             }
