@@ -167,8 +167,7 @@ async function respondToInput(command_input_array, message) {
             //Add song from youtube by searching input string
             else {
                 var query_string = message.content.substring(8); //this is the inputted command with '!kb add ' stripped
-                youtube.add(query_string, streaming.queue, message)
-                return;
+                return youtube.addYoutubeVideoToMusicQueue(query_string, streaming.queue, message)
             }
 
         case 'queue':
@@ -183,7 +182,7 @@ async function respondToInput(command_input_array, message) {
             //build reply by iterating through the queue
             for(let song of streaming.queue.songs) {
 
-                queue_string += `Song: **${song.title}** as requested by: **${song.requestedBy}** \n`
+                queue_string += `Song: **${song.title}** as requested by: **${song.requested_by}** \n`
 
                 //Send the string in chuncks if it's long to prevent a long stall
                 if(queue_string.length > 1800) {

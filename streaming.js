@@ -39,7 +39,7 @@ async function play(message) {
             message.member.voiceChannel.leave();
             playing = false;
         });
-        message.channel.send(`Playing: **${song.title}** as requested by: **${song.requestedBy}**`);
+        message.channel.send(`Playing: **${song.title}** as requested by: **${song.requested_by}**`);
         if(message.guild.voiceConnection == null) {
             return;
         }
