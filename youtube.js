@@ -8,12 +8,17 @@ async function addYoutubeVideoToMusicQueue(youtube_query_string, music_queue, me
 
     try {
 
-        /* TODO: An enormous amount of queries is being made!
-           I'm not sure if there's a 1-1 ratio between api calls and queries,
-           but ~100 api calls is > 20,000 queries atm. Maybe the wrapper I'm
-           using is shit, idk. I need to look into this and maybe just do it
-           manually */
-       //https://developers.google.com/youtube/v3/getting-started#quota
+        /* TODO: right now our Youtube Data API query limit is 20,000
+           where one search is 100 queries. This means we can only have 200
+           songs per day.
+
+           Maybe to reduce the number of queries we should add a database that
+           remembers urls?
+
+           https://developers.google.com/youtube/v3/getting-started#quota
+         */
+
+         // TODO: sometimes the returned song is strange (ex: U & US Quinn XCII is some documentary)
 
         //search youtube with input query string
         const search_results = await youtube.searchVideos(youtube_query_string, 1); //(search string, max num results)
@@ -22,7 +27,7 @@ async function addYoutubeVideoToMusicQueue(youtube_query_string, music_queue, me
 
         //put the first result in the music queue
         music_queue.songs.push({url: first_result_url, title: first_result_title, requested_by: message.author.username});
-        return `Added song: **${first_result_title}** as requested by: **${message.author.username}** from search string **${youtube_query_string}`;
+        return `Added song: **${first_result_title}** as requested by: **${message.author.username}**`;
     }
     catch(err) {
         //console.log(err);

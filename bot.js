@@ -108,7 +108,7 @@ async function respondToInput(command_input_array, message) {
     }
 
     //Log command to console
-    console.log(`\n New User Command From:  ${message.author.username} \n Command: ${command_input_array} \n`)
+    console.log(`\n New User Command From:  ${message.author.username} \n Command: ${message.content} \n`)
 
     //Do whatever the command is
     switch(command_input_array[0]) {
@@ -142,8 +142,8 @@ async function respondToInput(command_input_array, message) {
 
             //join voice chat with the user and play music queue
             try {
-                await streaming.join(message);
-                await streaming.play(message);
+                await streaming.joinVoiceChannel(message);
+                await streaming.playMusicFromQueue(message);
                 return;
             }
             catch(err) {
@@ -154,7 +154,7 @@ async function respondToInput(command_input_array, message) {
 
         case 'shuffle':
 
-            shuffle(streaming.queue.songs);
+            shuffle(streaming.MYAPP.queue.songs);
             return 'Queue has been shuffled';
 
         case 'add':
@@ -165,13 +165,13 @@ async function respondToInput(command_input_array, message) {
 
             //Add spotify playlist by id
             if(command_input_array[1] == 'playlist') {
-                return spotify.addSpotifyPlaylistToMusicQueue(command_input_array[2], streaming.queue, message);
+                return spotify.addSpotifyPlaylistToMusicQueue(command_input_array[2], streaming.MYAPP.queue, message);
             }
 
             //Add song from youtube by searching input string
             else {
                 var query_string = message.content.substring(8); //this is the inputted command with '!kb add ' stripped
-                return youtube.addYoutubeVideoToMusicQueue(query_string, streaming.queue, message)
+                return youtube.addYoutubeVideoToMusicQueue(query_string, streaming.MYAPP.queue, message)
             }
 
         case 'queue':
@@ -184,7 +184,7 @@ async function respondToInput(command_input_array, message) {
             var queue_string = '';
 
             //build reply by iterating through the queue
-            for(let song of streaming.queue.songs) {
+            for(let song of streaming.MYAPP.queue.songs) {
 
                 queue_string += `Song: **${song.title}** as requested by: **${song.requested_by}** \n`
 
@@ -200,9 +200,11 @@ async function respondToInput(command_input_array, message) {
                 return queue_string;
             }
 
+            else return 'Queue is empty';
+
         case 'clear':
 
-            streaming.queue.songs = [];
+            streaming.MYAPP.queue.songs = [];
             return 'Queue has been cleared';
 
         case 'kick':
