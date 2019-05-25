@@ -84,7 +84,9 @@ function registerBotListeners() {
 
             //do whatever action is required by the command and reply to user
             respondToInput(command_input_array, message).then(bot_reply => {
-                message.channel.send(bot_reply);
+                if(bot_reply != undefined) {
+                    message.channel.send(bot_reply);
+                }
             });
         }
     });
@@ -104,6 +106,9 @@ async function respondToInput(command_input_array, message) {
     if(command_input_array[1] == '-h') {
         return botReplies[command_input_array[0]];
     }
+
+    //Log command to console
+    console.log(`\n New User Command From:  ${message.author.username} \n Command: ${command_input_array} \n`)
 
     //Do whatever the command is
     switch(command_input_array[0]) {
@@ -160,8 +165,7 @@ async function respondToInput(command_input_array, message) {
 
             //Add spotify playlist by id
             if(command_input_array[1] == 'playlist') {
-                spotify.getSpotifyPlaylist(command_input_array[2], streaming.queue, message);
-                return;
+                return spotify.addSpotifyPlaylistToMusicQueue(command_input_array[2], streaming.queue, message);
             }
 
             //Add song from youtube by searching input string
