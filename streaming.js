@@ -5,7 +5,7 @@ const MYAPP = {};
 MYAPP.music_is_playing = false;
 MYAPP.queue = {songs: []};
 MYAPP.music_is_paused = false;
-MYAPP.max_inactivity_ms = 60000;
+MYAPP.max_inactivity_ms = 600000; //10 minutes
 
 /* TODO: These functions send messages directly to the channel, different
 than the approach other functions take. Also, joinVoiceChannel throws errors,
@@ -85,9 +85,10 @@ async function streamSong(song, message) {
     }
 
     //Set up dispatcher that streams audio from the song's url to the voice channel
-    dispatcher = message.guild.voiceConnection.playStream(yt(song.url,
+    let dispatcher = message.guild.voiceConnection.playStream(yt(song.url,
                                                           { filter: 'audioonly', quality: 'highestaudio'}),
                                                           { bitrate: '64000', volume: '.15', passes: '4'});
+
 
     //set up listener for any user commands related to music
     let collector = message.channel.createCollector(m => m);
@@ -124,6 +125,7 @@ async function streamSong(song, message) {
     //Dispatcher event listeners
     dispatcher.on('end', () => {
         collector.stop();
+        console.log('dispatcher ended');
         streamSong(MYAPP.queue.songs.shift(), message);
     });
     dispatcher.on('error', err => {

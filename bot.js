@@ -163,16 +163,31 @@ async function respondToInput(command_input_array, message) {
                 return 'This command only works in guilds';
             }
 
+            let function_result;
+
             //Add spotify playlist by id
             if(command_input_array[1] == 'playlist') {
-                return spotify.addSpotifyPlaylistToMusicQueue(command_input_array[2], streaming.MYAPP.queue, message);
+                function_result = await spotify.addSpotifyPlaylistToMusicQueue(command_input_array[2], streaming.MYAPP.queue, message);
             }
 
             //Add song from youtube by searching input string
             else {
                 var query_string = message.content.substring(8); //this is the inputted command with '!kb add ' stripped
-                return youtube.addYoutubeVideoToMusicQueue(query_string, streaming.MYAPP.queue, message)
+                function_result = await youtube.addYoutubeVideoToMusicQueue(query_string, streaming.MYAPP.queue, message)
             }
+
+            message.channel.send(function_result);
+
+            //Attempt to play music that was just added
+            try {
+                await streaming.joinVoiceChannel(message);
+                await streaming.playMusicFromQueue(message);
+            }
+            catch(err) {
+                //do nothing
+            };
+
+            return; //if return function_result, the playing message pops up before the added one.
 
         case 'queue':
 
