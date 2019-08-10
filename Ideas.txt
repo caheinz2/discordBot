@@ -3,3 +3,12 @@ To Do:
 -Command to clear chat from itself (or another user) in a channel (or all channels)
 -Filter messages to the correct channel
 -Queue back
+
+-REVAMP MUSIC
+	-Save youtube api lookup results in database
+	-Rename spotify playlists and import only once
+	-Redo queue and music commands to make classes
+	
+-Make a requests object and spawn a request from every input and deal with stuff from that object
+
+-Use fewer npm packages and clean that whole area up.

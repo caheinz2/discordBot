@@ -40,7 +40,7 @@ function connectToDiscord() {
     //authenticate bot with Discord server
     MYAPP.bot.login(auth.token);
 
-    //I encountered a bug where sometimes the authentication without indication
+    //I encountered a bug where sometimes the authentication fails without indication
     //so this timer will check back in 5min and try again if needed.
     setTimeout(restartBot, 5 * 60 * 1000);
 }
