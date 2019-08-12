@@ -1,20 +1,16 @@
 const Discord = require('discord.js');
 const auth = require('./secrets/auth.json');
-const tweets = require('./twitter.js');
-const streaming = require('./streaming.js');
-const youtube = require('./youtube.js');
-const yt = require('ytdl-core');
-const spotify = require('./spotify.js');
+const musicController = require('./musicController.js').musicController();
 const botReplies = require('./botReplies.json');
 
 
 //Top level discord bot file with helper bot commands below
 const MYAPP = {};
-MYAPP.command_prefix = '!kb';
-MYAPP.command_prefix_length = 3;
-MYAPP.supported_commands = ['ping', 'tweet', 'play', 'pause', 'unpause',
+MYAPP.command_prefix = '$';
+MYAPP.command_prefix_length = 1;
+MYAPP.supported_commands = ['ping', 'play', 'pause', 'unpause',
                             'resume', 'next', 'skip', 'shuffle', 'add',
-                            'clear', 'queue', 'kick', 'help'];
+                            'clear', 'queue', 'help'];
 
 
 function main() {
@@ -119,31 +115,26 @@ async function respondToInput(command_input_array, message) {
             for (let command of MYAPP.supported_commands) {
                 command_list_string += command + '\n';
             }
-            return `Currently supported commands: \n\n${command_list_string} \nFor additional information about each command, type !kb {command} -h`;
+            return `Currently supported commands: \n\n${command_list_string} \nFor additional information about each command, type ${MYAPP.command_prefix} {command} -h`;
 
         case 'ping':
 
             return 'pong';
 
-        case 'tweet':
-
-            //get a random tweet from the bois
-            try {
-                let tweet_url = await tweets.getRandomTweetFromMember();
-                console.log(tweet_url);
-                return tweet_url;
-            }
-            catch(err) {
-                console.log(err);
-                return 'An error occured';
-            }
-
         case 'play':
+
+            if(!message.guild) {
+                return 'Must be in a guild to perform this action';
+            }
+
+            if(!message.member.voiceChannel) {
+                return 'User must be in a voice channel for music to play';
+            }
 
             //join voice chat with the user and play music queue
             try {
-                await streaming.joinVoiceChannel(message);
-                await streaming.playMusicFromQueue(message);
+                await musicController.joinVoiceChannel(message.member.voiceChannel);
+                musicController.playSongFromQueue(message.guild.id, message.guild.voiceConnection);
                 return;
             }
             catch(err) {
@@ -154,7 +145,12 @@ async function respondToInput(command_input_array, message) {
 
         case 'shuffle':
 
-            shuffle(streaming.MYAPP.queue.songs);
+            if(!message.guild) {
+                return 'Must be in a guild to perform this action';
+            }
+
+            musicController.shuffleQueue(message.guild.id);
+
             return 'Queue has been shuffled';
 
         case 'add':
@@ -163,96 +159,27 @@ async function respondToInput(command_input_array, message) {
                 return 'This command only works in guilds';
             }
 
-            let function_result;
-
-            //Add spotify playlist by id
-            if(command_input_array[1] == 'playlist') {
-                function_result = await spotify.addSpotifyPlaylistToMusicQueue(command_input_array[2], streaming.MYAPP.queue, message);
-            }
-
             //Add song from youtube by searching input string
-            else {
-                var query_string = message.content.substring(8); //this is the inputted command with '!kb add ' stripped
-                function_result = await youtube.addYoutubeVideoToMusicQueue(query_string, streaming.MYAPP.queue, message)
-            }
-
-            message.channel.send(function_result);
+            var query_string = message.content.substring(MYAPP.command_prefix_length + 5); //this is the inputted command with '$ add ' stripped
+            musicController.addSongToQueue(query_string, message.author.username, message.guild.id);
 
             //Attempt to play music that was just added
             try {
-                await streaming.joinVoiceChannel(message);
-                await streaming.playMusicFromQueue(message);
+
+                if(!message.member.voiceChannel) {
+                    return 'User must be in a voice channel for added music to play';
+                }
+
+                await musicController.joinVoiceChannel(message.member.voiceChannel);
+                musicController.playSongFromQueue(message.guild.id, message.guild.voiceConnection);
             }
             catch(err) {
                 //do nothing
             };
 
             return; //if return function_result, the playing message pops up before the added one.
-
-        case 'queue':
-
-            //handle sending a message to the user differently in this case.
-            //I want to send several messages as the function is running so I
-            //can't just have a return statement.
-
-            message.channel.send('Music queue is: ')
-            var queue_string = '';
-
-            //build reply by iterating through the queue
-            for(let song of streaming.MYAPP.queue.songs) {
-
-                queue_string += `Song: **${song.title}** as requested by: **${song.requested_by}** \n`
-
-                //Send the string in chuncks if it's long to prevent a long stall
-                if(queue_string.length > 1800) {
-                    message.channel.send(queue_string);
-                    queue_string = '';
-                }
-            }
-
-            //send last chunck of queue string
-            if(queue_string != '') {
-                return queue_string;
-            }
-
-            else return 'Queue is empty';
-
-        case 'clear':
-
-            streaming.MYAPP.queue.songs = [];
-            return 'Queue has been cleared';
-
-        case 'kick':
-
-            if(!message.guild) {
-                return 'This command only works in guilds';
-            }
-
-            message.guild.voiceConnection.disconnect();
-            return;
-
-        // Just add any case commands if you want to..
     }
 }
 
-function shuffle(array) {
-
-    let cur_idx = array.length;
-
-    // While there are elements in the array
-    while (counter > 0) {
-
-        // Pick a random index
-        let new_index = Math.floor(Math.random() * cur_idx);
-
-        // Decrease counter by 1
-        cur_idx--;
-
-        // And swap the current element with it
-        let temp = array[cur_idx];
-        array[cur_idx] = array[new_idx];
-        array[new_idx] = temp;
-    }
-}
-
+//To do: clean up repeated messages, standardize message and try/catch policies, possibly restructure into a class, lowercase input
 main();

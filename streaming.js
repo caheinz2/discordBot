@@ -138,7 +138,7 @@ async function streamSong(song, message) {
 //If possible, have the bot leave the channel when queue is empty
 function exitGracefully(message) {
     if(message != null) {
-        message.guild.voiceConnection.disconnect;
+        message.guild.voiceConnection.disconnect();
     }
 }
 

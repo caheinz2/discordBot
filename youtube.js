@@ -35,6 +35,16 @@ async function addYoutubeVideoToMusicQueue(youtube_query_string, music_queue, me
     }
 }
 
+async function getYoutubeSongInfo(youtube_query_string) {
+
+    //search youtube with input query string
+    const search_results = await youtube.searchVideos(youtube_query_string, 1); //(search string, max num results)
+    const first_result_url = 'https://www.youtube.com/watch?v=' + search_results[0].id;
+    const first_result_title = search_results[0].title; /* TODO: Fix this line so that uri stuff is decoded (ex: &quot) */
+
+    return({url: first_result_url, title: first_result_title});
+}
 
 
-module.exports = {addYoutubeVideoToMusicQueue};
+
+module.exports = {addYoutubeVideoToMusicQueue, getYoutubeSongInfo};
