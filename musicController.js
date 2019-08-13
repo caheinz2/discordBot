@@ -1,5 +1,4 @@
 const yt = require('ytdl-core');
-const async = require('async');
 var streamingQueue = require('./queue.js');
 const youtubeAPI = require('./youtube.js');
 
@@ -84,15 +83,27 @@ var musicController = function(spec, my) {
 
             //Then stream the song
             var yt_options = { filter: 'audioonly', quality: 'highestaudio'};
-            var play_options = { bitrate: '64000', volume: '.15', passes: '4'};
+            var play_options = { bitrate: '48000', volume: '.25', passes: '2'};
             cur_queue.dispatcher = voice_connection.playStream(yt( youtube_result.url, yt_options), play_options);
             cur_queue.status = "playing";
 
             //Add event listener for end of song
             cur_queue.dispatcher.on('end', () => {
+                console.log('dispatcher ended');
                 cur_queue.status = "stopped";
                 that.playSongFromQueue(server_id, voice_connection);
             });
+
+            cur_queue.dispatcher.on('error', (err) => {
+                console.log('A dispatcher error occured:');
+                console.log(err);
+            });
+
+            cur_queue.dispatcher.on('debug', (info) => {
+                console.log('Dispatcher debugging info:')
+                console.log(info);
+            });
+
         }
 
         else {

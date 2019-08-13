@@ -171,10 +171,11 @@ async function respondToInput(command_input_array, message) {
                 }
 
                 await musicController.joinVoiceChannel(message.member.voiceChannel);
-                musicController.playSongFromQueue(message.guild.id, message.guild.voiceConnection);
+                await musicController.playSongFromQueue(message.guild.id, message.guild.voiceConnection);  //To do: remove the await and add something better to catch errors
             }
             catch(err) {
-                //do nothing
+                console.log(err);
+                return 'An error occured';
             };
 
             return; //if return function_result, the playing message pops up before the added one.

@@ -1,6 +1,5 @@
 const Twitter = require('twitter');
 const creds = require('./secrets/twitterCreds.json');
-const async = require('async');
 
 const MYAPP = {};
 MYAPP.tweet_max_offset = 600; //This is somewhat arbitrary but a large offset

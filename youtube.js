@@ -1,4 +1,3 @@
-const async = require('async');
 const creds = require('./secrets/youtubeCreds.json');
 const YouTube = require('simple-youtube-api');
 
