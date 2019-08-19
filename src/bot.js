@@ -76,7 +76,7 @@ function registerBotListeners() {
         if (message.content.substring(0, MYAPP.command_prefix_length) === MYAPP.command_prefix) {
 
             //get rid of prefix and put each subsequent word into an array index
-            const command_input_array = message.content.substring(MYAPP.command_prefix_length + 1).split(' ');
+            const command_input_array = message.content.substring(MYAPP.command_prefix_length).trim().toLowerCase().split(' ');
 
             //do whatever action is required by the command and reply to user
             respondToInput(command_input_array, message)
@@ -88,7 +88,7 @@ function registerBotListeners() {
                 .catch(err => {
                     console.log(err);
                     message.channel.send(botReplies.error.standard);
-                });
+            });
         }
     });
 }
@@ -165,7 +165,7 @@ async function respondToInput(command_input_array, message) {
             }
 
             //Add song from youtube by searching input string
-            var query_string = message.content.substring(MYAPP.command_prefix_length + 5); //this is the inputted command with '$ add ' stripped
+            var query_string = command_input_array.slice(1).join(' '); //this is the inputted command with '$ add ' stripped
             musicController.addSongToQueue(query_string, message.author.username, message.guild.id);
 
             //Attempt to play music that was just added
@@ -183,9 +183,10 @@ async function respondToInput(command_input_array, message) {
                 return botReplies.error.standard;
             };
 
-            return; //if return function_result, the playing message pops up before the added one.
+            return botReplies.success.add; //if return function_result, the playing message pops up before the added one.
+                                           //This may or not be a problem, but if paySongFromQueue() sends  a message first, try using promises
     }
 }
 
-//To do: possibly restructure into a class, lowercase input
+//To do: possibly restructure into a class
 main();

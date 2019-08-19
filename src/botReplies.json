@@ -32,6 +32,7 @@
     "success":
     {
         "ping": "Pong",
-        "shuffle": "Queue has been shuffled"
+        "shuffle": "Queue has been shuffled",
+        "add": "Song added successfully"
     }
 }
