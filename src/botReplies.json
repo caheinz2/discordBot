@@ -33,6 +33,7 @@
     {
         "ping": "Pong",
         "shuffle": "Queue has been shuffled",
-        "add": "Song added successfully"
+        "add": "Song added successfully",
+        "pause": "Music paused"
     }
 }

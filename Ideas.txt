@@ -15,3 +15,7 @@ To Do:
 -Use fewer npm packages and clean that whole area up.
 
 -Clean up github structure (add /src folder, etc)
+
+
+-Update aws directory structure and pm2 commands
+-Update ytdl library on aws and scan for security vulnerabilities

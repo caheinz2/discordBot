@@ -126,7 +126,9 @@ async function respondToInput(command_input_array, message) {
 
             return botReplies.success.ping;
 
-        case 'play':
+        case 'play': //Add ability to call add from this if an argument is passed (users may mistake this for add command)
+        case 'resume':
+        case 'unpause':
 
             if(!message.guild) {
                 return botReplies.invalid_user_state.guild;
@@ -185,6 +187,16 @@ async function respondToInput(command_input_array, message) {
 
             return botReplies.success.add; //if return function_result, the playing message pops up before the added one.
                                            //This may or not be a problem, but if paySongFromQueue() sends  a message first, try using promises
+
+        case 'pause':
+
+            if(!message.guild) {
+                return botReplies.invalid_user_state.guild;
+            }
+
+            musicController.pauseMusicfromQueue(message.guild.id);
+
+            return botReplies.success.pause;
     }
 }
 
