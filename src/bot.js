@@ -62,7 +62,7 @@ function registerBotListeners() {
     });
 
     MYAPP.bot.on('error', err => {
-        console.log('Bot encountered an error');
+        console.log("A critical error occurred: ");
         console.error(err);
         bot.destroy();
         initiateBot();
@@ -79,11 +79,16 @@ function registerBotListeners() {
             const command_input_array = message.content.substring(MYAPP.command_prefix_length + 1).split(' ');
 
             //do whatever action is required by the command and reply to user
-            respondToInput(command_input_array, message).then(bot_reply => {
-                if(bot_reply != undefined) {
-                    message.channel.send(bot_reply);
-                }
-            });
+            respondToInput(command_input_array, message)
+                .then(bot_reply => {
+                    if(bot_reply != undefined) {
+                        message.channel.send(bot_reply);
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                    message.channel.send(botReplies.error.standard);
+                });
         }
     });
 }
@@ -119,16 +124,16 @@ async function respondToInput(command_input_array, message) {
 
         case 'ping':
 
-            return 'pong';
+            return botReplies.success.ping;
 
         case 'play':
 
             if(!message.guild) {
-                return 'Must be in a guild to perform this action';
+                return botReplies.invalid_user_state.guild;
             }
 
             if(!message.member.voiceChannel) {
-                return 'User must be in a voice channel for music to play';
+                return botReplies.invalid_user_state.play_music;
             }
 
             //join voice chat with the user and play music queue
@@ -139,24 +144,24 @@ async function respondToInput(command_input_array, message) {
             }
             catch(err) {
                 console.log(err);
-                return 'An error occured';
+                return botReplies.error.standard;
             };
 
 
         case 'shuffle':
 
             if(!message.guild) {
-                return 'Must be in a guild to perform this action';
+                return botReplies.invalid_user_state.guild;
             }
 
             musicController.shuffleQueue(message.guild.id);
 
-            return 'Queue has been shuffled';
+            return botReplies.success.shuffle;
 
         case 'add':
 
             if(!message.guild) {
-                return 'This command only works in guilds';
+                return botReplies.invalid_user_state.guild;
             }
 
             //Add song from youtube by searching input string
@@ -167,7 +172,7 @@ async function respondToInput(command_input_array, message) {
             try {
 
                 if(!message.member.voiceChannel) {
-                    return 'User must be in a voice channel for added music to play';
+                    return botReplies.invalid_user_state.added_music;
                 }
 
                 await musicController.joinVoiceChannel(message.member.voiceChannel);
@@ -175,12 +180,12 @@ async function respondToInput(command_input_array, message) {
             }
             catch(err) {
                 console.log(err);
-                return 'An error occured';
+                return botReplies.error.standard;
             };
 
             return; //if return function_result, the playing message pops up before the added one.
     }
 }
 
-//To do: clean up repeated messages, standardize message and try/catch policies, possibly restructure into a class, lowercase input
+//To do: possibly restructure into a class, lowercase input
 main();
