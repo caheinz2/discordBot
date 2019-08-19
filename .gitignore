@@ -1,4 +1,6 @@
 *secrets
 *node_modules
-*package-lock.json
-*package.json
+*retired_files
+*wip
+package-lock.json
+package.json

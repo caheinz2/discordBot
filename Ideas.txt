@@ -9,7 +9,9 @@ To Do:
 	-Rename spotify playlists and import only once
 	-Redo queue and music commands to make classes
 	-Be able to modify a certain input query to link to a certain youtube url
-	
+
 -Make a requests object and spawn a request from every input and deal with stuff from that object
 
 -Use fewer npm packages and clean that whole area up.
+
+-Clean up github structure (add /src folder, etc)
