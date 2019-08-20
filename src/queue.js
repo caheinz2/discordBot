@@ -51,7 +51,6 @@ var streamingQueue = function(spec, my) {
     var my = my || {};
 
     that.dispatcher = {}; //streams youtube music
-    that.voice_connection = {};
     that.status = "stopped"; //status is playing, paused, or stopped
     that.play_next_song = true;
 

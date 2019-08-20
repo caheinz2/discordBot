@@ -197,6 +197,18 @@ async function respondToInput(command_input_array, message) {
             musicController.pauseMusicfromQueue(message.guild.id);
 
             return botReplies.success.pause;
+
+        case 'skip':
+        case 'next':
+
+            if(!message.guild) {
+                return botReplies.invalid_user_state.guild;
+            }
+
+            musicController.skipSong(message.guild.id);
+
+            return;
+
     }
 }
 

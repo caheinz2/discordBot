@@ -1,4 +1,5 @@
 const yt = require('ytdl-core');
+const fs = require('fs');
 var streamingQueue = require('./queue.js');
 const youtubeAPI = require('./youtube.js');
 
@@ -24,9 +25,32 @@ var musicController = function(spec, my) {
         return true;
     }
 
+    //Adds event listeners to the dispatcher that plays audio back to the server.
+    my.addDispatcherEvents = function(dispatcher) {
+        dispatcher.on('error', (err) => {
+            console.log('A dispatcher error occured:');
+            console.log(err);
+        });
+
+        dispatcher.on('debug', (info) => {
+            console.log('Dispatcher debugging info:')
+            console.log(info);
+        });
+    }
+
+    //Adds event listeners to the stream that downloads youtube files
+    my.addStreamEvents = function(stream) {
+        stream.on('error', (err) => {
+            console.log("A stream error occurred:");
+            console.log(err);
+        });
+    }
+
+
     that.joinVoiceChannel = async function(channel) {
         await channel.join();
     }
+
 
     that.addSongToQueue = function(query_string, requester, server_id) {
 
@@ -37,6 +61,7 @@ var musicController = function(spec, my) {
         my.queues[server_id].addSong(query_string, requester)
     }
 
+
     that.clearQueue = function(server_id) {
 
         if(!my.queueExists(server_id)) {
@@ -46,6 +71,7 @@ var musicController = function(spec, my) {
         my.queues[server_id].clear();
     }
 
+
     that.shuffleQueue = function(server_id) {
 
         if(!my.queueExists(server_id)) {
@@ -54,6 +80,7 @@ var musicController = function(spec, my) {
 
         my.queues[server_id].shuffle();
     }
+
 
     that.playSongFromQueue = async function(server_id, voice_connection) {
 
@@ -65,10 +92,10 @@ var musicController = function(spec, my) {
         }
 
         //send some message back, idk
-        console.log("PlayNextSong called");
 
         //Treat resuming paused music differently than starting new song!
 
+        //Start new song
         if(cur_queue.status === "stopped") {
 
 
@@ -85,16 +112,23 @@ var musicController = function(spec, my) {
             console.log("youtube result: " + youtube_result.url);
 
             //Then stream the song
-            var yt_options = { filter: 'audioonly', quality: 'highestaudio'};
-            var play_options = { bitrate: '48000', volume: '.25', passes: '2'};
-            cur_queue.dispatcher = voice_connection.playStream(yt(youtube_result.url, yt_options), play_options); //Look into the ytdl documentation because there may be a better way to do this / library to use (or ffmpeg directly https://github.com/fent/node-ytdl-core/blob/HEAD/example/ffmpeg.js)
+            var yt_options = { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<18};
+            var play_options = { bitrate: '48000', volume: '.25', passes: '2', highWaterMark: 1<<18}; //default is 1<<14 (16kb)
+
+
+            var stream = yt(youtube_result.url, yt_options);
+            my.addStreamEvents(stream);
+
+            //Launch stream and update status variables
+            cur_queue.dispatcher = voice_connection.playStream(stream, play_options);
             cur_queue.status = "playing";
-            cur_queue.voice_connection = voice_connection;
             cur_queue.play_next_song = true;
+            my.addDispatcherEvents(cur_queue.dispatcher);
 
             //Add event listener for end of song
             cur_queue.dispatcher.on('end', (reason) => {
                 console.log("dispatcher ended: " + reason);
+                stream.end();
                 cur_queue.status = "stopped";
 
                 //If a playing song ended, play the next one
@@ -102,28 +136,24 @@ var musicController = function(spec, my) {
                     that.playSongFromQueue(server_id, voice_connection);
                 }
 
-                //If ended for another reason (pause timeout, user command), don't play next song
+                //If ended for another reason (pause timeout, user command), don't play next song and leave the channel
+                else {
+                    voice_connection.disconnect();
+                }
                 return;
-            });
-
-            cur_queue.dispatcher.on('error', (err) => {
-                console.log('A dispatcher error occured:');
-                console.log(err);
-            });
-
-            cur_queue.dispatcher.on('debug', (info) => {
-                console.log('Dispatcher debugging info:')
-                console.log(info);
             });
 
         }
 
+        //if paused
         else {
+            console.log("unpausing");
             cur_queue.dispatcher.resume();
             cur_queue.status = "playing";
         }
 
     }
+
 
     that.pauseMusicfromQueue = function (server_id) {
 
@@ -142,13 +172,26 @@ var musicController = function(spec, my) {
             if(cur_queue.status === "paused") { //Yeah this doesn't account for pause -> unpause -> pause but I don't think that's a big deal
                 cur_queue.play_next_song = false;
                 cur_queue.status = "stopped";
-                cur_queue.voice_connection.disconnect();
+                cur_queue.dispatcher.end();
             }},
             pause_timeout_ms);
 
     }
 
-    //To do: add pause, timeout, skip, kick from voice, playlists, messages, print queue, error recovery, make sure validation is done somewhere above this
+
+    that.skipSong = function (server_id) {
+
+        var cur_queue = my.queues[server_id];
+
+        //Return immediately if no queue exists for server_id or if music is already playing
+        if(!my.queueExists(server_id) || cur_queue.status != "playing") {
+            return;
+        }
+
+        cur_queue.dispatcher.end("Skipping this song");
+    }
+
+    //To do: add skip, kick from voice, playlists, messages, print queue, error recovery, make sure validation is done somewhere above this
 
 
     return that;
