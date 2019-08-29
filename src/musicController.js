@@ -9,10 +9,10 @@ streamingQueue = streamingQueue.streamingQueue;
 const pause_timeout_ms = 1000 * 60 * 5; //5 minutes (arbitrary)
 
 
-var musicController = function(spec, my) {
+var musicController = function(spec) {
 
     var that = {};
-    my = my || {};
+    my = {};
 
 
     //map of queues keyed by server_id
@@ -205,7 +205,7 @@ var musicController = function(spec, my) {
 
     that.printQueue = function (server_id) {
 
-        //Return immediately if no queue exists for server_id or if music is already playing
+        //Return immediately if no queue exists for server_id
         if(!my.queueExists(server_id)) {
             return;
         }
