@@ -105,7 +105,7 @@ async function respondToInput(command_input_array, message) {
 
     //send help message if -h flag is given
     if(command_input_array[1] == '-h') {
-        return botReplies[command_input_array[0]];
+        return botReplies.help[command_input_array[0]];
     }
 
     //Log command to console
@@ -127,6 +127,16 @@ async function respondToInput(command_input_array, message) {
             return botReplies.success.ping;
 
         case 'play': //Add ability to call add from this if an argument is passed (users may mistake this for add command)
+
+            //If user mistook play for add by appending a search text, recall function with correct command
+            if(command_input_array.length > 1) {
+                command_input_array[0] = "add";
+                respondToInput(command_input_array, message);
+                return;
+            }
+
+            //Otherwise continue with the stuff play normally does (and all the other pseudonymns)
+
         case 'resume':
         case 'unpause':
 
@@ -158,7 +168,7 @@ async function respondToInput(command_input_array, message) {
 
             musicController.shuffleQueue(message.guild.id);
 
-            return botReplies.success.shuffle;
+            return;
 
         case 'add':
 
@@ -168,7 +178,7 @@ async function respondToInput(command_input_array, message) {
 
             //Add song from youtube by searching input string
             var query_string = command_input_array.slice(1).join(' '); //this is the inputted command with '$ add ' stripped
-            musicController.addSongToQueue(query_string, message.author.username, message.guild.id);
+            musicController.addSongToQueue(query_string, message.author.username, message.guild.id, message.channel);
 
             //Attempt to play music that was just added
             try {
@@ -185,8 +195,7 @@ async function respondToInput(command_input_array, message) {
                 return botReplies.error.standard;
             };
 
-            return botReplies.success.add; //if return function_result, the playing message pops up before the added one.
-                                           //This may or not be a problem, but if paySongFromQueue() sends  a message first, try using promises
+            return;
 
         case 'pause':
 
@@ -196,7 +205,7 @@ async function respondToInput(command_input_array, message) {
 
             musicController.pauseMusicfromQueue(message.guild.id);
 
-            return botReplies.success.pause;
+            return;
 
         case 'skip':
         case 'next':
@@ -208,6 +217,14 @@ async function respondToInput(command_input_array, message) {
             musicController.skipSong(message.guild.id);
 
             return;
+
+        case 'queue':
+
+            if(!message.guild) {
+                return botReplies.invalid_user_state.guild;
+            }
+
+            musicController.printQueue(message.guild.id);
 
     }
 }

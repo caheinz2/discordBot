@@ -1,6 +1,6 @@
 const _ = require('underscore');
 
-// spect = {server_id}
+// spec = {server_id} (unused so far)
 
 var queue = function (spec, my) {
 
@@ -8,8 +8,6 @@ var queue = function (spec, my) {
     my = my || {};
 
     my.songs = []; //actual queue
-    my.dispatcher = {}; //streams youtube music
-    my.status = "stopped"; //status is playing, paused, or stopped
 
     that.getQueueLength = function() {
         return my.songs.length;
@@ -36,10 +34,15 @@ var queue = function (spec, my) {
         my.songs = [];
     }
 
-    that.print = function(channel) {
+    that.print_queue = function(channel) {
+        channel.send("Music Queue: ")
         _.each(my.songs, (song) => {
-            channel.send(`  Query String: ${song.query_string} \n  Requested By: ${song.requester}`);
-        })
+            channel.send(`   '${song.query_string}'`);
+        });
+
+        if(my.songs.length === 0) {
+            channel.send("   Empty");
+        }
     }
 
     return that;
@@ -52,7 +55,14 @@ var streamingQueue = function(spec, my) {
 
     that.dispatcher = {}; //streams youtube music
     that.status = "stopped"; //status is playing, paused, or stopped
-    that.play_next_song = true;
+    that.play_next_song = true; //play another on song end?
+    that.text_channel = spec.text_channel; //channel queue was created from, used to send status messages
+                                           //TODO: Maybe make text_channel and dispatcher private variables and add some access control?
+
+    //override print function (I need to figure out how to properly do this...have streamingQueue override queue and call both methods 'print');
+    that.print = function() {
+        that.print_queue(that.text_channel);
+    }
 
     return that;
 }

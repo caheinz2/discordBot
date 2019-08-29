@@ -2,6 +2,7 @@ const yt = require('ytdl-core');
 const fs = require('fs');
 var streamingQueue = require('./queue.js');
 const youtubeAPI = require('./youtube.js');
+const botReplies = require('./botReplies.json');
 
 streamingQueue = streamingQueue.streamingQueue;
 
@@ -52,13 +53,15 @@ var musicController = function(spec, my) {
     }
 
 
-    that.addSongToQueue = function(query_string, requester, server_id) {
+    that.addSongToQueue = function(query_string, requester, server_id, text_channel) {
 
         if(!my.queueExists(server_id)) {
-            my.queues[server_id] = streamingQueue({server_id: server_id});
+            my.queues[server_id] = streamingQueue({text_channel: text_channel});
         }
 
-        my.queues[server_id].addSong(query_string, requester)
+        my.queues[server_id].addSong(query_string, requester);
+
+        my.queues[server_id].text_channel.send(`Song: '${query_string}' queued successfully`);
     }
 
 
@@ -79,6 +82,8 @@ var musicController = function(spec, my) {
         }
 
         my.queues[server_id].shuffle();
+
+        my.queues[server_id].text_channel.send(botReplies.success.shuffle);
     }
 
 
@@ -91,8 +96,6 @@ var musicController = function(spec, my) {
             return;
         }
 
-        //send some message back, idk
-
         //Treat resuming paused music differently than starting new song!
 
         //Start new song
@@ -101,6 +104,7 @@ var musicController = function(spec, my) {
 
             if(cur_queue.getNextSong() === undefined) {
                 voice_connection.disconnect();
+                my.queues[server_id].text_channel.send(botReplies.ending.empty_queue);
                 return;
             }
 
@@ -109,14 +113,17 @@ var musicController = function(spec, my) {
 
             //Then look up song on youtube (Optimize this later)
             var youtube_result = await youtubeAPI.getYoutubeSongInfo(next_song.query_string);
-            console.log("youtube result: " + youtube_result.url);
+            //console.log("youtube result: " + youtube_result.url);
 
             //Then stream the song
-            var yt_options = { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<18};
-            var play_options = { bitrate: '48000', volume: '.25', passes: '2', highWaterMark: 1<<18}; //default is 1<<14 (16kb)
+            var yt_options = { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1<<20};
+            var play_options = { bitrate: '48000', volume: '.25', passes: '2', highWaterMark: 1<<20}; //default is 1<<14 (16kb)
+
+            console.log(youtube_result.url);
 
 
             var stream = yt(youtube_result.url, yt_options);
+
             my.addStreamEvents(stream);
 
             //Launch stream and update status variables
@@ -143,13 +150,15 @@ var musicController = function(spec, my) {
                 return;
             });
 
+        my.queues[server_id].text_channel.send(`Now playing: ${youtube_result.title}`);
+
         }
 
         //if paused
         else {
-            console.log("unpausing");
             cur_queue.dispatcher.resume();
             cur_queue.status = "playing";
+            my.queues[server_id].text_channel.send(botReplies.success.unpause);
         }
 
     }
@@ -167,12 +176,15 @@ var musicController = function(spec, my) {
         cur_queue.dispatcher.pause();
         cur_queue.status = "paused";
 
+        my.queues[server_id].text_channel.send(botReplies.success.pause);
+
         //Cause the bot to leave the voice channel if paused too long
         setTimeout(() => {
             if(cur_queue.status === "paused") { //Yeah this doesn't account for pause -> unpause -> pause but I don't think that's a big deal
                 cur_queue.play_next_song = false;
                 cur_queue.status = "stopped";
                 cur_queue.dispatcher.end();
+                my.queues[server_id].text_channel.send(botReplies.ending.timeout);
             }},
             pause_timeout_ms);
 
@@ -189,6 +201,16 @@ var musicController = function(spec, my) {
         }
 
         cur_queue.dispatcher.end("Skipping this song");
+    }
+
+    that.printQueue = function (server_id) {
+
+        //Return immediately if no queue exists for server_id or if music is already playing
+        if(!my.queueExists(server_id)) {
+            return;
+        }
+
+        my.queues[server_id].print();
     }
 
     //To do: add skip, kick from voice, playlists, messages, print queue, error recovery, make sure validation is done somewhere above this

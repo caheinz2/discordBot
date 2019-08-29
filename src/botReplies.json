@@ -34,6 +34,13 @@
         "ping": "Pong",
         "shuffle": "Queue has been shuffled",
         "add": "Song added successfully",
-        "pause": "Music paused"
+        "pause": "Music paused",
+        "unpause": "Music resumed"
+    },
+
+    "ending":
+    {
+        "timeout": "Bot was pause for too long and left the voice channel",
+        "empty_queue": "Queue is empty"
     }
 }
