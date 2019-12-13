@@ -10,7 +10,7 @@
     "erlpack": "^0.1.2",
     "libsodium-wrappers": "^0.7.4",
     "node-opus": "^0.3.2",
-    "npm": "^6.10.3",
+    "npm": "^6.13.4",
     "opusscript": "0.0.6",
     "simple-youtube-api": "^5.1.1",
     "underscore": "^1.9.1",
